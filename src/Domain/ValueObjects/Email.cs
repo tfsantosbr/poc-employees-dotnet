@@ -15,12 +15,12 @@ namespace Domain.ValueObjects
         public static Result<Email> Create(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
-                return Result.Failure<Email>("O email não pode ser vazio");
+                return Result.Failure<Email>("Email.Empty", "O email não pode ser vazio");
 
             // Simple email validation
             var pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             if (!Regex.IsMatch(email, pattern))
-                return Result.Failure<Email>("Formato de email inválido");
+                return Result.Failure<Email>("Email.InvalidFormat", "Formato de email inválido");
 
             return Result.Success(new Email(email));
         }

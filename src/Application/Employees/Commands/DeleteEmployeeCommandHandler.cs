@@ -6,24 +6,18 @@ using Domain.Repositories;
 
 namespace Application.Employees.Commands
 {
-    public class DeleteEmployeeCommandHandler : ICommandHandler<DeleteEmployeeCommand, Result>
+    public class DeleteEmployeeCommandHandler(
+        IEmployeeRepository employeeRepository,
+        IUnitOfWork unitOfWork) : ICommandHandler<DeleteEmployeeCommand, Result>
     {
-        private readonly IEmployeeRepository _employeeRepository;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public DeleteEmployeeCommandHandler(
-            IEmployeeRepository employeeRepository,
-            IUnitOfWork unitOfWork)
-        {
-            _employeeRepository = employeeRepository;
-            _unitOfWork = unitOfWork;
-        }
+        private readonly IEmployeeRepository _employeeRepository = employeeRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<Result> Handle(DeleteEmployeeCommand command, CancellationToken cancellationToken = default)
         {
             // Verificar se o funcionário existe
             var exists = await _employeeRepository.ExistsAsync(command.Id, cancellationToken);
-            if (\!exists)
+            if (!exists)
                 return Result.Failure("NOT_FOUND", "Funcionário não encontrado");
 
             // Excluir o funcionário

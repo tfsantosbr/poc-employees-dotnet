@@ -4,9 +4,5 @@ using Domain.Common;
 
 namespace Application.Employees.Queries
 {
-    public class GetEmployeeListQuery : IQuery<Result<EmployeeListResponse>>
-    {
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
-    }
+    public record GetEmployeeListQuery(int Page = 1, int PageSize = 10) : IQuery<Result<EmployeeListResponse>>;
 }

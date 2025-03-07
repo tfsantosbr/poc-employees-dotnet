@@ -3,33 +3,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using Application.Common;
 using Domain.Common;
+using Domain.Common.Errors;
 using Domain.Repositories;
 using Domain.ValueObjects;
 using FluentValidation;
 
 namespace Application.Employees.Commands
 {
-    public class UpdateEmployeeCommandHandler : ICommandHandler<UpdateEmployeeCommand, Result>
+    public class UpdateEmployeeCommandHandler(
+        IEmployeeRepository employeeRepository,
+        IUnitOfWork unitOfWork,
+        IValidator<UpdateEmployeeCommand> validator) : ICommandHandler<UpdateEmployeeCommand, Result>
     {
-        private readonly IEmployeeRepository _employeeRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IValidator<UpdateEmployeeCommand> _validator;
-
-        public UpdateEmployeeCommandHandler(
-            IEmployeeRepository employeeRepository,
-            IUnitOfWork unitOfWork,
-            IValidator<UpdateEmployeeCommand> validator)
-        {
-            _employeeRepository = employeeRepository;
-            _unitOfWork = unitOfWork;
-            _validator = validator;
-        }
+        private readonly IEmployeeRepository _employeeRepository = employeeRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IValidator<UpdateEmployeeCommand> _validator = validator;
 
         public async Task<Result> Handle(UpdateEmployeeCommand command, CancellationToken cancellationToken = default)
         {
             // Validar comando
             var validationResult = await _validator.ValidateAsync(command, cancellationToken);
-            if (\!validationResult.IsValid)
+            if (!validationResult.IsValid)
             {
                 var errors = validationResult.Errors.Select(e => new Error("Validation", e.ErrorMessage));
                 return Result.Failure(errors);

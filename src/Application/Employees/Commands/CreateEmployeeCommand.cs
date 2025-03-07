@@ -5,15 +5,17 @@ using Domain.Common;
 
 namespace Application.Employees.Commands
 {
-    public class CreateEmployeeCommand : ICommand<Result<EmployeeResponse>>
+    public record CreateEmployeeCommand(
+        string FirstName,
+        string LastName,
+        string Email,
+        DateTime BirthDate,
+        string Document,
+        string Position,
+        decimal Salary,
+        string Currency
+    ) : ICommand<Result<EmployeeResponse>>
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public DateTime BirthDate { get; set; }
-        public string Document { get; set; }
-        public string Position { get; set; }
-        public decimal Salary { get; set; }
-        public string Currency { get; set; } = "BRL";
+        public string Currency { get; init; } = Currency ?? "BRL";
     }
 }

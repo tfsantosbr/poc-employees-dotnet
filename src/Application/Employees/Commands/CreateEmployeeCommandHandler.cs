@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Application.Common;
 using Application.Employees.Models.Responses;
 using Domain.Common;
+using Domain.Common.Errors;
 using Domain.Entities;
 using Domain.Repositories;
 using Domain.ValueObjects;
@@ -11,27 +12,20 @@ using FluentValidation;
 
 namespace Application.Employees.Commands
 {
-    public class CreateEmployeeCommandHandler : ICommandHandler<CreateEmployeeCommand, Result<EmployeeResponse>>
+    public class CreateEmployeeCommandHandler(
+        IEmployeeRepository employeeRepository,
+        IUnitOfWork unitOfWork,
+        IValidator<CreateEmployeeCommand> validator) : ICommandHandler<CreateEmployeeCommand, Result<EmployeeResponse>>
     {
-        private readonly IEmployeeRepository _employeeRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IValidator<CreateEmployeeCommand> _validator;
-
-        public CreateEmployeeCommandHandler(
-            IEmployeeRepository employeeRepository,
-            IUnitOfWork unitOfWork,
-            IValidator<CreateEmployeeCommand> validator)
-        {
-            _employeeRepository = employeeRepository;
-            _unitOfWork = unitOfWork;
-            _validator = validator;
-        }
+        private readonly IEmployeeRepository _employeeRepository = employeeRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IValidator<CreateEmployeeCommand> _validator = validator;
 
         public async Task<Result<EmployeeResponse>> Handle(CreateEmployeeCommand command, CancellationToken cancellationToken = default)
         {
             // Validar comando
             var validationResult = await _validator.ValidateAsync(command, cancellationToken);
-            if (\!validationResult.IsValid)
+            if (!validationResult.IsValid)
             {
                 var errors = validationResult.Errors.Select(e => new Error("Validation", e.ErrorMessage));
                 return Result.Failure<EmployeeResponse>(errors);
@@ -75,7 +69,7 @@ namespace Application.Employees.Commands
 
             // Persistir a entidade
             var addedEmployee = await _employeeRepository.AddAsync(employee, cancellationToken);
-            
+
             // Salvar as alterações
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

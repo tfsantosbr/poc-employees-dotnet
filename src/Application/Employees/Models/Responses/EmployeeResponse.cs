@@ -3,22 +3,24 @@ using System.Collections.Generic;
 
 namespace Application.Employees.Models.Responses
 {
-    public class EmployeeResponse
+    public record EmployeeResponse(
+        Guid Id,
+        string FirstName,
+        string LastName,
+        string FullName,
+        string Email,
+        DateTime BirthDate,
+        string Document,
+        string DocumentType,
+        string Position,
+        decimal Salary,
+        string Currency,
+        DateTime CreatedAt,
+        DateTime UpdatedAt,
+        bool IsActive,
+        List<AddressResponse> Addresses
+    )
     {
-        public Guid Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public DateTime BirthDate { get; set; }
-        public string Document { get; set; }
-        public string DocumentType { get; set; }
-        public string Position { get; set; }
-        public decimal Salary { get; set; }
-        public string Currency { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public bool IsActive { get; set; }
-        public List<AddressResponse> Addresses { get; set; } = new List<AddressResponse>();
+        public List<AddressResponse> Addresses { get; init; } = Addresses ?? new List<AddressResponse>();
     }
 }

@@ -2,22 +2,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.Common;
+using Application.Common.Interfaces;
 using Application.Employees.Models.Responses;
 using Domain.Common;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Infrastructure.Persistence;
 
 namespace Application.Employees.Queries
 {
-    public class GetEmployeeByIdQueryHandler : IQueryHandler<GetEmployeeByIdQuery, Result<EmployeeResponse>>
+    public class GetEmployeeByIdQueryHandler(IApplicationDbContext dbContext) : IQueryHandler<GetEmployeeByIdQuery, Result<EmployeeResponse>>
     {
-        private readonly AppDbContext _dbContext;
-
-        public GetEmployeeByIdQueryHandler(AppDbContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
+        private readonly IApplicationDbContext _dbContext = dbContext;
 
         public async Task<Result<EmployeeResponse>> Handle(GetEmployeeByIdQuery query, CancellationToken cancellationToken = default)
         {
