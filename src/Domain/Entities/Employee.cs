@@ -8,7 +8,7 @@ namespace Domain.Entities
 {
     public class Employee
     {
-        private readonly List<Address> _addresses = new();
+        private readonly List<EmployeeAddress> _addresses = new();
         
         // Private constructor for EF Core
         private Employee() { }
@@ -44,9 +44,9 @@ namespace Domain.Entities
         public DateTime CreatedAt { get; private set; }
         public DateTime UpdatedAt { get; private set; }
         public bool IsActive { get; private set; }
-        public IReadOnlyCollection<Address> Addresses => _addresses.AsReadOnly();
+        public IReadOnlyCollection<EmployeeAddress> Addresses => _addresses.AsReadOnly();
 
-        public static Result<Employee> Create(
+        public static Employee Create(
             PersonName name,
             Email email,
             DateTime birthDate,
@@ -54,133 +54,65 @@ namespace Domain.Entities
             string position,
             Money salary)
         {
-            if (name == null)
-                return Result.Failure<Employee>("O nome é obrigatório");
-                
-            if (email == null)
-                return Result.Failure<Employee>("O email é obrigatório");
-                
-            if (document == null)
-                return Result.Failure<Employee>("O documento é obrigatório");
-                
-            if (string.IsNullOrWhiteSpace(position))
-                return Result.Failure<Employee>("O cargo é obrigatório");
-                
-            if (salary == null)
-                return Result.Failure<Employee>("O salário é obrigatório");
-                
-            if (birthDate == default)
-                return Result.Failure<Employee>("A data de nascimento é obrigatória");
-                
-            var minDate = new DateTime(1900, 1, 1);
-            if (birthDate < minDate)
-                return Result.Failure<Employee>("A data de nascimento não pode ser anterior a 01/01/1900");
-                
-            if (birthDate > DateTime.UtcNow)
-                return Result.Failure<Employee>("A data de nascimento não pode ser no futuro");
-                
-            var age = DateTime.UtcNow.Year - birthDate.Year;
-            if (DateTime.UtcNow.DayOfYear < birthDate.DayOfYear)
-                age--;
-                
-            if (age < 18)
-                return Result.Failure<Employee>("O funcionário deve ter pelo menos 18 anos");
-
-            return Result.Success(new Employee(
+            return new Employee(
                 Guid.NewGuid(),
                 name,
                 email,
                 birthDate,
                 document,
                 position,
-                salary));
+                salary);
         }
 
-        public Result Update(
+        public void Update(
             PersonName name,
             Email email,
             DateTime birthDate,
             string position,
             Money salary)
         {
-            if (name == null)
-                return Result.Failure("O nome é obrigatório");
-                
-            if (email == null)
-                return Result.Failure("O email é obrigatório");
-                
-            if (string.IsNullOrWhiteSpace(position))
-                return Result.Failure("O cargo é obrigatório");
-                
-            if (salary == null)
-                return Result.Failure("O salário é obrigatório");
-                
-            if (birthDate == default)
-                return Result.Failure("A data de nascimento é obrigatória");
-                
-            var minDate = new DateTime(1900, 1, 1);
-            if (birthDate < minDate)
-                return Result.Failure("A data de nascimento não pode ser anterior a 01/01/1900");
-                
-            if (birthDate > DateTime.UtcNow)
-                return Result.Failure("A data de nascimento não pode ser no futuro");
-                
-            var age = DateTime.UtcNow.Year - birthDate.Year;
-            if (DateTime.UtcNow.DayOfYear < birthDate.DayOfYear)
-                age--;
-                
-            if (age < 18)
-                return Result.Failure("O funcionário deve ter pelo menos 18 anos");
-            
             Name = name;
             Email = email;
             BirthDate = birthDate;
             Position = position;
             Salary = salary;
             UpdatedAt = DateTime.UtcNow;
-            
-            return Result.Success();
         }
         
-        public Result AddAddress(Address address)
+        public void AddAddress(Address address)
         {
-            if (address == null)
-                return Result.Failure("O endereço não pode ser nulo");
+            var employeeAddress = EmployeeAddress.Create(Id, address);
             
             // If this is the first address or it's set as main, make sure it's marked as main
-            if (!_addresses.Any() || address.IsMain)
+            if (\!_addresses.Any() || address.IsMain)
             {
                 // Set all existing addresses as non-main
-                foreach (var existingAddress in _addresses.Where(a => a.IsMain))
+                foreach (var existingAddress in _addresses.Where(a => a.Address.IsMain))
                 {
-                    existingAddress.SetMain(false);
+                    existingAddress.SetAddressAsMain(false);
                 }
             }
             
-            _addresses.Add(address);
+            _addresses.Add(employeeAddress);
             UpdatedAt = DateTime.UtcNow;
-            return Result.Success();
         }
         
-        public Result RemoveAddress(Address addressToRemove)
+        public bool RemoveAddress(Guid addressId)
         {
-            if (addressToRemove == null)
-                return Result.Failure("O endereço não pode ser nulo");
-                
-            var address = _addresses.FirstOrDefault(a => a.Equals(addressToRemove));
+            var address = _addresses.FirstOrDefault(a => a.Id == addressId);
             if (address == null)
-                return Result.Failure("Endereço não encontrado");
+                return false;
                 
             _addresses.Remove(address);
             
             // If the removed address was the main one and we have other addresses, set the first one as main
-            if (address.IsMain && _addresses.Any())
+            if (address.Address.IsMain && _addresses.Any())
             {
-                _addresses.First().SetMain(true);
+                _addresses.First().SetAddressAsMain(true);
             }
             
             UpdatedAt = DateTime.UtcNow;
-            return Result.Success();
+            return true;
         }
         
         public void Activate()

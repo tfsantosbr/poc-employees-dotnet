@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Domain.Common;
 using Domain.Entities;
 using Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +13,7 @@ namespace Infrastructure.Persistence
         }
 
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<EmployeeAddress> EmployeeAddresses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,17 +22,9 @@ namespace Infrastructure.Persistence
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
 
-        public async Task<Result> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                await base.SaveChangesAsync(cancellationToken);
-                return Result.Success();
-            }
-            catch (DbUpdateException ex)
-            {
-                return Result.Failure($"Erro ao salvar as alterações no banco de dados: {ex.Message}");
-            }
+            await base.SaveChangesAsync(cancellationToken);
         }
     }
 }
