@@ -63,7 +63,10 @@ namespace Application.UnitTests.Employees.Handlers
 
             _employeeRepository
                 .AddAsync(Arg.Any<Employee>(), Arg.Any<CancellationToken>())
-                .Returns(Task.CompletedTask);
+                .Returns(callInfo => {
+                    // Retorna o mesmo employee que foi passado como parâmetro
+                    return Task.FromResult((Employee)callInfo.Args()[0]);
+                });
 
             _unitOfWork
                 .SaveChangesAsync(Arg.Any<CancellationToken>())

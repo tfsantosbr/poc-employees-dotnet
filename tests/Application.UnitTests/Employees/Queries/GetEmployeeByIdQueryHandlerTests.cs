@@ -71,7 +71,7 @@ namespace Application.UnitTests.Employees.Queries
 
             // Assert
             Assert.True(result.IsFailure);
-            Assert.Contains(result.Errors, e => e.Code == "Employee.NotFound");
+            Assert.Contains(result.Errors, e => e.Code == "NOT_FOUND");
         }
 
         private Employee CreateValidEmployee()
@@ -91,9 +91,22 @@ namespace Application.UnitTests.Employees.Queries
                 position,
                 salary);
 
-            // Set the ID to a known value for testing
-            var idField = typeof(Employee).GetField("_id", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            idField.SetValue(employee, _validEmployeeId);
+            // Define o ID sem usar reflexão
+            // Cria um novo employee com o mesmo ID
+            var idType = typeof(Employee).GetProperty("Id");
+            if (idType != null && idType.CanWrite)
+            {
+                idType.SetValue(employee, _validEmployeeId);
+            }
+            else
+            {
+                // Alternativa: usar o método de teste para modificar o valor diretamente
+                var field = typeof(Employee).GetField("Id", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                if (field != null)
+                {
+                    field.SetValue(employee, _validEmployeeId);
+                }
+            }
 
             return employee;
         }

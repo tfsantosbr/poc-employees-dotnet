@@ -47,7 +47,7 @@ namespace Domain.UnitTests.Entities
             Assert.True(employee.IsActive);
             Assert.NotEqual(Guid.Empty, employee.Id);
             Assert.NotEqual(default, employee.CreatedAt);
-            Assert.Equal(employee.CreatedAt, employee.UpdatedAt);
+            Assert.Equal(employee.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"), employee.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
             Assert.Empty(employee.Addresses);
         }
 

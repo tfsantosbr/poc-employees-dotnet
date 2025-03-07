@@ -50,20 +50,20 @@ namespace Application.UnitTests.Employees.Queries
             Assert.Equal(2, itemsList.Count);
 
             var employee1 = itemsList[0];
-            Assert.Equal("John", employee1.FirstName);
-            Assert.Equal("Doe", employee1.LastName);
+            Assert.Equal("John Doe", employee1.FullName);
             Assert.Equal("john.doe@example.com", employee1.Email);
             Assert.Equal("12345678901", employee1.Document);
+            Assert.Equal("Developer", employee1.Position);
             Assert.Equal(5000m, employee1.Salary);
-            Assert.Equal("BRL", employee1.Currency);
+            Assert.True(employee1.IsActive);
 
             var employee2 = itemsList[1];
-            Assert.Equal("Jane", employee2.FirstName);
-            Assert.Equal("Smith", employee2.LastName);
+            Assert.Equal("Jane Smith", employee2.FullName);
             Assert.Equal("jane.smith@example.com", employee2.Email);
             Assert.Equal("12345678902", employee2.Document);
+            Assert.Equal("Developer", employee2.Position);
             Assert.Equal(6000m, employee2.Salary);
-            Assert.Equal("BRL", employee2.Currency);
+            Assert.True(employee2.IsActive);
         }
 
         [Fact]
