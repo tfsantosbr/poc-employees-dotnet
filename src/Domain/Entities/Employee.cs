@@ -82,8 +82,13 @@ namespace Domain.Entities
         {
             var employeeAddress = EmployeeAddress.Create(Id, address);
 
-            // If this is the first address or it's set as main, make sure it's marked as main
-            if (!addresses.Any() || address.IsMain)
+            // If this is the first address, always set it as main
+            if (!addresses.Any())
+            {
+                employeeAddress.SetAddressAsMain(true);
+            }
+            // If this address is marked as main, unmark existing main addresses
+            else if (address.IsMain)
             {
                 // Set all existing addresses as non-main
                 foreach (var existingAddress in addresses.Where(a => a.Address.IsMain))

@@ -93,7 +93,8 @@ namespace Domain.ValueObjects
                 City,
                 State,
                 ZipCode,
-                Country
+                Country,
+                IsMain
             };
         }
     }

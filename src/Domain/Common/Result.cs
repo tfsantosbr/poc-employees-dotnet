@@ -32,12 +32,23 @@ namespace Domain.Common
 
     public class Result<T> : Result
     {
+        private readonly T _value;
+        
         protected internal Result(T value, bool isSuccess, IEnumerable<Error> errors)
             : base(isSuccess, errors)
         {
-            Value = value;
+            _value = value;
         }
 
-        public T Value { get; }
+        public T Value
+        {
+            get
+            {
+                if (IsFailure)
+                    throw new System.InvalidOperationException("Cannot access Value on failure result");
+                
+                return _value;
+            }
+        }
     }
 }
