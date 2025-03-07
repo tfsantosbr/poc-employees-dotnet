@@ -17,7 +17,7 @@ namespace Domain.ValueObjects
         public static Result<Money> Create(decimal amount, string currency = "BRL")
         {
             if (amount < 0)
-                return Result.Failure<Money>("O valor não pode ser negativo");
+                return Result.Failure<Money>("Money.NegativeAmount", "O valor não pode ser negativo");
 
             return Result.Success(new Money(amount, currency));
         }

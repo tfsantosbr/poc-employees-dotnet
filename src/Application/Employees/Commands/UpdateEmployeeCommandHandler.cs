@@ -2,14 +2,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.Common;
-using Application.Employees.Commands;
 using Domain.Common;
 using Domain.Common.Errors;
 using Domain.Repositories;
 using Domain.ValueObjects;
 using FluentValidation;
 
-namespace Application.Employees.Handlers
+namespace Application.Employees.Commands
 {
     public class UpdateEmployeeCommandHandler(
         IEmployeeRepository employeeRepository,
@@ -26,7 +25,8 @@ namespace Application.Employees.Handlers
             var validationResult = await _validator.ValidateAsync(command, cancellationToken);
             if (!validationResult.IsValid)
             {
-                return Result.Failure(validationResult.Errors.Select(e => new Error(e.ErrorCode, e.ErrorMessage)));
+                var errors = validationResult.Errors.Select(e => new Error("Validation", e.ErrorMessage));
+                return Result.Failure(errors);
             }
 
             // Verificar se o funcionário existe
@@ -37,7 +37,7 @@ namespace Application.Employees.Handlers
             // Verificar se o email já existe (excluindo o funcionário atual)
             var emailExists = await _employeeRepository.EmailExistsAsync(command.Email, command.Id, cancellationToken);
             if (emailExists)
-                return Result.Failure("EmailInUse", "O email informado já está em uso por outro funcionário");
+                return Result.Failure("DUPLICATE_EMAIL", "O email informado já está em uso por outro funcionário");
 
             // Criar os value objects
             var nameResult = PersonName.Create(command.FirstName, command.LastName);

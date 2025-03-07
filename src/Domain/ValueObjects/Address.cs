@@ -1,4 +1,3 @@
-using System;
 using Domain.Common;
 
 namespace Domain.ValueObjects
@@ -49,22 +48,22 @@ namespace Domain.ValueObjects
             bool isMain = false)
         {
             if (string.IsNullOrWhiteSpace(street))
-                return Result.Failure<Address>("A rua não pode ser vazia");
+                return Result.Failure<Address>("Address.StreetEmpty", "A rua não pode ser vazia");
 
             if (string.IsNullOrWhiteSpace(number))
-                return Result.Failure<Address>("O número não pode ser vazio");
+                return Result.Failure<Address>("Address.NumberEmpty", "O número não pode ser vazio");
 
             if (string.IsNullOrWhiteSpace(neighborhood))
-                return Result.Failure<Address>("O bairro não pode ser vazio");
+                return Result.Failure<Address>("Address.NeighborhoodEmpty", "O bairro não pode ser vazio");
 
             if (string.IsNullOrWhiteSpace(city))
-                return Result.Failure<Address>("A cidade não pode ser vazia");
+                return Result.Failure<Address>("Address.CityEmpty", "A cidade não pode ser vazia");
 
             if (string.IsNullOrWhiteSpace(state))
-                return Result.Failure<Address>("O estado não pode ser vazio");
+                return Result.Failure<Address>("Address.StateEmpty", "O estado não pode ser vazio");
 
             if (string.IsNullOrWhiteSpace(zipCode))
-                return Result.Failure<Address>("O CEP não pode ser vazio");
+                return Result.Failure<Address>("Address.ZipCodeEmpty", "O CEP não pode ser vazio");
 
             return Result.Success(new Address(
                 street,
@@ -85,16 +84,16 @@ namespace Domain.ValueObjects
 
         protected override object[] GetEqualityComponents()
         {
-            return new object[] 
-            { 
-                Street, 
-                Number, 
-                Complement, 
-                Neighborhood, 
-                City, 
-                State, 
-                ZipCode, 
-                Country 
+            return new object[]
+            {
+                Street,
+                Number,
+                Complement,
+                Neighborhood,
+                City,
+                State,
+                ZipCode,
+                Country
             };
         }
     }

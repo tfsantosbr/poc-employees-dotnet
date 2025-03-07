@@ -5,8 +5,5 @@ using Domain.Common;
 
 namespace Application.Employees.Queries
 {
-    public class GetEmployeeByIdQuery : IQuery<Result<EmployeeResponse>>
-    {
-        public Guid Id { get; set; }
-    }
+    public record GetEmployeeByIdQuery(Guid Id) : IQuery<Result<EmployeeResponse>>;
 }

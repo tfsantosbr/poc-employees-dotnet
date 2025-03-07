@@ -1,9 +1,8 @@
-using System.Reflection;
 using Application.Common;
+using Application.Common.Interfaces;
 using Application.Employees.Commands;
-using Application.Employees.Handlers;
-using Application.Employees.Queries;
-using Application.Employees.Validators;
+using Application.Employees.Models.Responses;
+using Domain.Common;
 using Domain.Repositories;
 using FluentValidation;
 using Infrastructure.Persistence;
@@ -24,24 +23,25 @@ namespace Infrastructure.DependencyInjection
                     configuration.GetConnectionString("DefaultConnection"),
                     b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 
-            // Repositories
+            // DbContext and Repositories
+            services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<AppDbContext>());
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<AppDbContext>());
 
             // Validators
-            services.AddScoped<IValidator<CreateEmployeeCommand>, CreateEmployeeCommandValidator>();
-            services.AddScoped<IValidator<UpdateEmployeeCommand>, UpdateEmployeeCommandValidator>();
-            services.AddScoped<IValidator<AddEmployeeAddressCommand>, AddEmployeeAddressCommandValidator>();
+            services.AddScoped<IValidator<CreateEmployeeCommand>, Application.Employees.Validators.CreateEmployeeCommandValidator>();
+            services.AddScoped<IValidator<UpdateEmployeeCommand>, Application.Employees.Validators.UpdateEmployeeCommandValidator>();
+            services.AddScoped<IValidator<AddEmployeeAddressCommand>, Application.Employees.Validators.AddEmployeeAddressCommandValidator>();
 
             // Command Handlers
-            services.AddScoped<ICommandHandler<CreateEmployeeCommand, Domain.Common.Result<Application.Employees.Models.Responses.EmployeeResponse>>, CreateEmployeeCommandHandler>();
-            services.AddScoped<ICommandHandler<UpdateEmployeeCommand, Domain.Common.Result>, UpdateEmployeeCommandHandler>();
-            services.AddScoped<ICommandHandler<DeleteEmployeeCommand, Domain.Common.Result>, DeleteEmployeeCommandHandler>();
-            services.AddScoped<ICommandHandler<AddEmployeeAddressCommand, Domain.Common.Result>, AddEmployeeAddressCommandHandler>();
+            services.AddScoped<ICommandHandler<CreateEmployeeCommand, Result<EmployeeResponse>>, Application.Employees.Handlers.CreateEmployeeCommandHandler>();
+            services.AddScoped<ICommandHandler<UpdateEmployeeCommand, Result>, Application.Employees.Handlers.UpdateEmployeeCommandHandler>();
+            services.AddScoped<ICommandHandler<DeleteEmployeeCommand, Result>, Application.Employees.Handlers.DeleteEmployeeCommandHandler>();
+            services.AddScoped<ICommandHandler<AddEmployeeAddressCommand, Result>, Application.Employees.Handlers.AddEmployeeAddressCommandHandler>();
 
             // Query Handlers
-            services.AddScoped<IQueryHandler<GetEmployeeByIdQuery, Domain.Common.Result<Application.Employees.Models.Responses.EmployeeResponse>>, GetEmployeeByIdQueryHandler>();
-            services.AddScoped<IQueryHandler<GetEmployeeListQuery, Domain.Common.Result<Application.Employees.Models.Responses.EmployeeListResponse>>, GetEmployeeListQueryHandler>();
+            services.AddScoped<IQueryHandler<Application.Employees.Queries.GetEmployeeByIdQuery, Result<EmployeeResponse>>, Application.Employees.Handlers.GetEmployeeByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<Application.Employees.Queries.GetEmployeeListQuery, Result<EmployeeListResponse>>, Application.Employees.Handlers.GetEmployeeListQueryHandler>();
 
             return services;
         }

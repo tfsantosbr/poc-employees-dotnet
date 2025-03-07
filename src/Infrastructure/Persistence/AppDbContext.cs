@@ -1,38 +1,32 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Domain.Common;
+using Application.Common.Interfaces;
 using Domain.Entities;
 using Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence
 {
-    public class AppDbContext : DbContext, IUnitOfWork
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IUnitOfWork, IApplicationDbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-        {
-        }
-
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<EmployeeAddress> EmployeeAddresses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
+
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
 
-        public async Task<Result> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                await base.SaveChangesAsync(cancellationToken);
-                return Result.Success();
-            }
-            catch (DbUpdateException ex)
-            {
-                return Result.Failure($"Erro ao salvar as alterações no banco de dados: {ex.Message}");
-            }
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        async Task IUnitOfWork.SaveChangesAsync(CancellationToken cancellationToken)
+        {
+            await SaveChangesAsync(cancellationToken);
         }
     }
 }

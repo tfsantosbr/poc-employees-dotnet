@@ -1,8 +1,6 @@
 using Domain.Entities;
-using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
 
 namespace Infrastructure.Persistence.Configurations
 {
@@ -86,45 +84,11 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(e => e.IsActive)
                 .IsRequired();
 
-            // Addresses Value Objects Collection
-            builder.OwnsMany(e => e.Addresses, address =>
-            {
-                address.WithOwner().HasForeignKey("EmployeeId");
-                
-                address.Property(a => a.Street)
-                    .HasMaxLength(100)
-                    .IsRequired();
-                
-                address.Property(a => a.Number)
-                    .HasMaxLength(20)
-                    .IsRequired();
-                
-                address.Property(a => a.Complement)
-                    .HasMaxLength(100);
-                
-                address.Property(a => a.Neighborhood)
-                    .HasMaxLength(100)
-                    .IsRequired();
-                
-                address.Property(a => a.City)
-                    .HasMaxLength(100)
-                    .IsRequired();
-                
-                address.Property(a => a.State)
-                    .HasMaxLength(50)
-                    .IsRequired();
-                
-                address.Property(a => a.ZipCode)
-                    .HasMaxLength(20)
-                    .IsRequired();
-                
-                address.Property(a => a.Country)
-                    .HasMaxLength(50)
-                    .IsRequired();
-                
-                address.Property(a => a.IsMain)
-                    .IsRequired();
-            });
+            // EmployeeAddress Entity Collection
+            builder.HasMany(e => e.Addresses)
+                .WithOne()
+                .HasForeignKey(a => a.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

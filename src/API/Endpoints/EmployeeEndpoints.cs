@@ -8,7 +8,6 @@ using Application.Employees.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace API.Endpoints
 {
@@ -65,9 +64,9 @@ namespace API.Endpoints
         }
 
         private static async Task<IResult> GetEmployees(
-            int page, 
-            int pageSize, 
-            IQueryHandler<GetEmployeeListQuery, Domain.Common.Result<EmployeeListResponse>> handler, 
+            int page,
+            int pageSize,
+            IQueryHandler<GetEmployeeListQuery, Domain.Common.Result<EmployeeListResponse>> handler,
             CancellationToken cancellationToken)
         {
             page = page <= 0 ? 1 : page;
@@ -83,11 +82,11 @@ namespace API.Endpoints
         }
 
         private static async Task<IResult> GetEmployeeById(
-            Guid id, 
-            IQueryHandler<GetEmployeeByIdQuery, Domain.Common.Result<EmployeeResponse>> handler, 
+            Guid id,
+            IQueryHandler<GetEmployeeByIdQuery, Domain.Common.Result<EmployeeResponse>> handler,
             CancellationToken cancellationToken)
         {
-            var query = new GetEmployeeByIdQuery { Id = id };
+            var query = new GetEmployeeByIdQuery(id);
             var result = await handler.Handle(query, cancellationToken);
 
             if (result.IsFailure)
@@ -97,8 +96,8 @@ namespace API.Endpoints
         }
 
         private static async Task<IResult> CreateEmployee(
-            CreateEmployeeCommand command, 
-            ICommandHandler<CreateEmployeeCommand, Domain.Common.Result<EmployeeResponse>> handler, 
+            CreateEmployeeCommand command,
+            ICommandHandler<CreateEmployeeCommand, Domain.Common.Result<EmployeeResponse>> handler,
             CancellationToken cancellationToken)
         {
             var result = await handler.Handle(command, cancellationToken);
@@ -110,9 +109,9 @@ namespace API.Endpoints
         }
 
         private static async Task<IResult> UpdateEmployee(
-            Guid id, 
+            Guid id,
             UpdateEmployeeCommand command,
-            ICommandHandler<UpdateEmployeeCommand, Domain.Common.Result> handler, 
+            ICommandHandler<UpdateEmployeeCommand, Domain.Common.Result> handler,
             CancellationToken cancellationToken)
         {
             if (id != command.Id)
@@ -127,11 +126,11 @@ namespace API.Endpoints
         }
 
         private static async Task<IResult> DeleteEmployee(
-            Guid id, 
-            ICommandHandler<DeleteEmployeeCommand, Domain.Common.Result> handler, 
+            Guid id,
+            ICommandHandler<DeleteEmployeeCommand, Domain.Common.Result> handler,
             CancellationToken cancellationToken)
         {
-            var command = new DeleteEmployeeCommand { Id = id };
+            var command = new DeleteEmployeeCommand(id);
             var result = await handler.Handle(command, cancellationToken);
 
             if (result.IsFailure)
@@ -141,9 +140,9 @@ namespace API.Endpoints
         }
 
         private static async Task<IResult> AddEmployeeAddress(
-            Guid id, 
-            AddEmployeeAddressCommand command, 
-            ICommandHandler<AddEmployeeAddressCommand, Domain.Common.Result> handler, 
+            Guid id,
+            AddEmployeeAddressCommand command,
+            ICommandHandler<AddEmployeeAddressCommand, Domain.Common.Result> handler,
             CancellationToken cancellationToken)
         {
             if (id != command.EmployeeId)

@@ -2,27 +2,32 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.Common;
+using Application.Common.Interfaces;
 using Application.Employees.Models.Responses;
-using Application.Employees.Queries;
 using Domain.Common;
-using Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
 
-namespace Application.Employees.Handlers
+namespace Application.Employees.Queries
 {
-    public class GetEmployeeListQueryHandler(IEmployeeRepository employeeRepository) : IQueryHandler<GetEmployeeListQuery, Result<EmployeeListResponse>>
+    public class GetEmployeeListQueryHandler(IApplicationDbContext dbContext) : IQueryHandler<GetEmployeeListQuery, Result<EmployeeListResponse>>
     {
-        private readonly IEmployeeRepository _employeeRepository = employeeRepository;
+        private readonly IApplicationDbContext _dbContext = dbContext;
 
         public async Task<Result<EmployeeListResponse>> Handle(GetEmployeeListQuery query, CancellationToken cancellationToken = default)
         {
             // Obter funcionários paginados
-            var employees = await _employeeRepository.GetAllAsync(query.Page, query.PageSize, cancellationToken);
+            var employees = await _dbContext.Employees
+                .AsNoTracking()
+                .OrderByDescending(e => e.UpdatedAt)
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync(cancellationToken);
 
             // Obter contagem total
-            var count = await _employeeRepository.GetTotalCountAsync(cancellationToken);
+            var totalCount = await _dbContext.Employees.CountAsync(cancellationToken);
 
             // Mapear resultados
-            var mappedEmployees = employees.Select(e => new EmployeeListItemResponse(
+            var employeeItems = employees.Select(e => new EmployeeListItemResponse(
                 Id: e.Id,
                 FullName: e.Name.FullName,
                 Email: e.Email.Value,
@@ -30,11 +35,11 @@ namespace Application.Employees.Handlers
                 Position: e.Position,
                 Salary: e.Salary.Amount,
                 IsActive: e.IsActive
-            ));
+            )).ToList();
 
             var response = new EmployeeListResponse(
-                Employees: mappedEmployees,
-                TotalCount: count,
+                Employees: employeeItems,
+                TotalCount: totalCount,
                 Page: query.Page,
                 PageSize: query.PageSize
             );

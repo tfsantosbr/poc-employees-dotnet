@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.Common;
-using Application.Employees.Commands;
 using Application.Employees.Models.Responses;
 using Domain.Common;
 using Domain.Common.Errors;
@@ -12,32 +10,36 @@ using Domain.Repositories;
 using Domain.ValueObjects;
 using FluentValidation;
 
-namespace Application.Employees.Handlers
+namespace Application.Employees.Commands
 {
     public class CreateEmployeeCommandHandler(
         IEmployeeRepository employeeRepository,
         IUnitOfWork unitOfWork,
         IValidator<CreateEmployeeCommand> validator) : ICommandHandler<CreateEmployeeCommand, Result<EmployeeResponse>>
     {
+        private readonly IEmployeeRepository _employeeRepository = employeeRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IValidator<CreateEmployeeCommand> _validator = validator;
 
         public async Task<Result<EmployeeResponse>> Handle(CreateEmployeeCommand command, CancellationToken cancellationToken = default)
         {
             // Validar comando
-            var validationResult = await validator.ValidateAsync(command, cancellationToken);
+            var validationResult = await _validator.ValidateAsync(command, cancellationToken);
             if (!validationResult.IsValid)
             {
-                return Result.Failure<EmployeeResponse>(validationResult.Errors.Select(e => new Error(e.ErrorCode, e.ErrorMessage)));
+                var errors = validationResult.Errors.Select(e => new Error("Validation", e.ErrorMessage));
+                return Result.Failure<EmployeeResponse>(errors);
             }
 
             // Verificar se o email já existe
-            var emailExists = await employeeRepository.EmailExistsAsync(command.Email, null, cancellationToken);
+            var emailExists = await _employeeRepository.EmailExistsAsync(command.Email, null, cancellationToken);
             if (emailExists)
-                return Result.Failure<EmployeeResponse>("EmailInUse", "O email informado já está em uso");
+                return Result.Failure<EmployeeResponse>("DUPLICATE_EMAIL", "O email informado já está em uso");
 
             // Verificar se o documento já existe
-            var documentExists = await employeeRepository.DocumentExistsAsync(command.Document, null, cancellationToken);
+            var documentExists = await _employeeRepository.DocumentExistsAsync(command.Document, null, cancellationToken);
             if (documentExists)
-                return Result.Failure<EmployeeResponse>("DocumentInUse", "O documento informado já está em uso");
+                return Result.Failure<EmployeeResponse>("DUPLICATE_DOCUMENT", "O documento informado já está em uso");
 
             // Criar os value objects
             var nameResult = PersonName.Create(command.FirstName, command.LastName);
@@ -66,34 +68,17 @@ namespace Application.Employees.Handlers
                 salaryResult.Value);
 
             // Persistir a entidade
-            await employeeRepository.AddAsync(employee, cancellationToken);
+            var addedEmployee = await _employeeRepository.AddAsync(employee, cancellationToken);
 
             // Salvar as alterações
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             // Retornar o resultado
-            return Result.Success(MapToResponse(employee));
+            return Result.Success(MapToResponse(addedEmployee));
         }
 
         private static EmployeeResponse MapToResponse(Employee employee)
         {
-            var addresses = new List<AddressResponse>();
-
-            foreach (var addr in employee.Addresses)
-            {
-                addresses.Add(new AddressResponse(
-                    Street: addr.Address.Street,
-                    Number: addr.Address.Number,
-                    Complement: addr.Address.Complement,
-                    Neighborhood: addr.Address.Neighborhood,
-                    City: addr.Address.City,
-                    State: addr.Address.State,
-                    ZipCode: addr.Address.ZipCode,
-                    Country: addr.Address.Country,
-                    IsMain: addr.Address.IsMain
-                ));
-            }
-
             return new EmployeeResponse(
                 Id: employee.Id,
                 FirstName: employee.Name.FirstName,
@@ -109,7 +94,17 @@ namespace Application.Employees.Handlers
                 CreatedAt: employee.CreatedAt,
                 UpdatedAt: employee.UpdatedAt,
                 IsActive: employee.IsActive,
-                Addresses: addresses
+                Addresses: employee.Addresses.Select(a => new AddressResponse(
+                    Street: a.Address.Street,
+                    Number: a.Address.Number,
+                    Complement: a.Address.Complement,
+                    Neighborhood: a.Address.Neighborhood,
+                    City: a.Address.City,
+                    State: a.Address.State,
+                    ZipCode: a.Address.ZipCode,
+                    Country: a.Address.Country,
+                    IsMain: a.Address.IsMain
+                )).ToList()
             );
         }
     }
